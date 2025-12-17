@@ -5,10 +5,10 @@ import helmet from 'helmet';
 import morgan from 'morgan'
 import mongoose from 'mongoose';
 
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-dotenv.config();
 
 app.use(express.json());
 app.use(cors());
