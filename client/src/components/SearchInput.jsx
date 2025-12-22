@@ -1,21 +1,27 @@
 import { useState } from "react";
 
-export default function SearchInput({onSend}) {
+export default function SearchInput({onSend, disabled}) {
   const [query, setQuery] = useState("");
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() || disabled) return;
 
-    console.log("User query:", query);
+    onSend(query);
     setQuery("");
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <input
         type="text"
-        placeholder="Ask how to get around Albay… (Press Enter)"
+        placeholder={
+          disabled
+            ? "AlbayGo is thinking...."
+            : "Ask how to get around Albay… (Press Enter)"
+        }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="
