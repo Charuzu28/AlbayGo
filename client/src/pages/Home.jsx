@@ -17,8 +17,9 @@ const Home = () => {
   //   };
   //   setMessages = ((prev) => [...prev, userMessage]);
   // };
-
-   const handleSend = (text) => {
+  
+  const handleSend = async (text) => {
+     if(!text.trim()) return;
     const userMessage = {
       id: Date.now(),
       role: 'user',
@@ -26,18 +27,39 @@ const Home = () => {
       createdAt: new Date()
     };
     setMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
     
-    setTimeout(() => {
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: "Got it. I’ll help you with that.",
-        createdAt: new Date()
-      };
+    try {
+      const response = await fetch('http://localhost:5000/api/chat', {
+        method: 'POST',
+        headers: {
+          "Content-Type": 'application/json'
+        },
+        body: JSON.stringify({message: text})
+      });
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      const data = await response.json();
+       setTimeout(() => {
+        const assistantMessage = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: data.reply, 
+          createdAt: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        setIsTyping(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error', error);
       setIsTyping(false);
-    }, 800)
+       setMessages((prev) => [...prev, {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content:'Something went wrong.', 
+          createdAt: new Date(),
+       }]);
+    }
   };
 
   return (
