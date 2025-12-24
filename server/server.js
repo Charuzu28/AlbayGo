@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan'
 import mongoose from 'mongoose';
+import chatRoutes from './routes/chat.js'
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 app.get('/health', (req,res) => {
     res.status(200).json({status: 'OK'});
 })
+
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
     res.send("Backend running!");
