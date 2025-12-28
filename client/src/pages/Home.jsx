@@ -63,20 +63,24 @@ const Home = () => {
   };
 
   return (
-    <main className='min-h-screen flex justify-center px-4 items-center'>
-        <div className='w-full max-w-full text-center space-y-6'>
-            <Logo />
-            <p className='
-            text-gray-600 
-              text-sm
-              sm:text-lg
-              font-poppins
-              '>Your local guide for moving around Albay.</p>
-              <ChatContainer messages={messages}/>
-              {isTyping && <TypingIndicator />}
-            <SearchInput onSend={handleSend} />
+      <main className="min-h-screen px-4 flex flex-col items-center justify-center">
+        <div className="max-w-2xl mx-auto text-center space-y-6 pt-24">
+          <Logo />
+          <p className="text-gray-600 text-sm sm:text-lg font-poppins">
+            Your local guide for moving around Albay.
+          </p>
+        </div>
+
+        <div className="w-full max-w-2xl text-left">
+          <ChatContainer messages={messages} />
+          {isTyping && <TypingIndicator />}
+        </div>
+
+        <div className="w-full max-w-2xl items-center mt-4">
+          <SearchInput onSend={handleSend} />
         </div>
     </main>
+
   )
 }
 
