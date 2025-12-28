@@ -10,6 +10,7 @@ export default function ChatMessage({message}) {
             rounded-xl
             px-4 py-2
             text-sm
+            whitespace-pre-line
             ${isUser 
             ? "bg-black text-white"
             : "bg-gray-100 text-black"}`
