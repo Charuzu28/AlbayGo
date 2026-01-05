@@ -9,13 +9,27 @@ const routeSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    fromKey: {
+        type: String,
+        lowercase: true,
+        trim: true,
+        set: v => v.toLowerCase()
+    }
+    ,
     to: {
         type: String,
         required: true
     },
-    via:{
+    toKey: {
         type: String,
-        dafault: []
+        lowercase: true,
+        trim: true,
+        set: v => v.toLowerCase()
+    }
+    ,
+    via:{
+        type: [String],
+        default: []
     },
     loopType: {
         type: String,

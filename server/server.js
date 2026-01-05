@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan'
 import mongoose from 'mongoose';
 import chatRoutes from './routes/chat.js'
+import Route from './models/Route.js';
 
 dotenv.config();
 const app = express();
@@ -16,8 +17,10 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
-mongoose.connect(process.env.MONGO_URI).then(() => {
+mongoose.connect(process.env.MONGO_URI).then( async () => {
     console.log("MONGODB CONNECTED!");
+    const count = await Route.countDocuments();
+    console.log(`Route Loaded: `, count);
     app.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
     })
