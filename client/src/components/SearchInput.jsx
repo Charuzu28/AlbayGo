@@ -27,8 +27,8 @@ export default function SearchInput({onSend, disabled}) {
         className="
           w-full
           max-w-xs
-          sm:max-w-sm
-          md:max-w-xl
+          sm:max-w-xl
+          md:max-w-2xl
           lg:max-w-4xl
           px-4 py-3
           border border-gray-300
