@@ -1,6 +1,6 @@
 import fetch  from "node-fetch";
 
-export async function aiExplainRoute(routeData){
+export async function aiExplainRoute(route){
     try {
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
             method: "POST",
@@ -21,7 +21,7 @@ No emojis. No opinions.`
                 },
                 {
                     role: "user",
-                    content: JSON.stringify(routeData)
+                    content: JSON.stringify(route)
                 }
             ],
             temperature: 0.2
@@ -29,7 +29,7 @@ No emojis. No opinions.`
         });
 
         const data = await res.json();
-        return data.choices[0].message.content;
+        return data?.choices?.[0]?.message?.content;
     } catch (error) {
         console.error("AI Explain Error: ", error.message);
         return null;
