@@ -1,15 +1,19 @@
 import mongoose from "mongoose";
 
 const placeSchema = new mongoose.Schema({
-  intent: {
-    type: String,
-    required: true
-  },
   name: String,
+  key: String,
+  intent: String,          // food | tourist | stay
+
   description: String,
-  fare: String,
-  location: String,
-  notes: String
+
+  category: String,        // landmark, delicacy, heritage
+  bestTime: String,        // morning, afternoon, evening
+
+  tips: [String],          // short, factual
+  culturalNotes: String,   // optional controlled context
+
+  nearby: [String]
 });
 
 export default mongoose.model("Place", placeSchema);
