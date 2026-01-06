@@ -3,6 +3,8 @@ import Place from '../models/Place.js';
 import Route from '../models/Route.js';
 import { aiNormalize } from '../utils/aiNormalize.js';
 import { aiExplainRoute } from "../utils/aiExplainRoute.js";
+import { aiRefineItinerary } from "../utils/aiRefineItinerary.js";
+
 
 const router = express.Router();
 const sessions = {};
@@ -150,25 +152,36 @@ router.post('/', async (req, res) => {
         if (intent === "itinerary") {
             session.lastIntent = "itinerary";
 
-            const timeOfDay =
-                /morning/.test(message) ? "morning" :
-                /afternoon/.test(message) ? "afternoon" :
-                /evening|night/.test(message) ? "evening" :
-                null;
+            const places = await Place.find({ intent: "tourist" }).limit(5);
 
-            const query = { intent: "tourist" };
-            if (timeOfDay) query.bestTime = timeOfDay;
+            if (!places.length) {
+                return res.json({ reply: "I don’t have itinerary data yet." });
+            }
 
-            const places = await Place.find(query).limit(5);
+            const itineraryData = {
+                location: session.lastPlaceKey || "Legazpi",
+                duration: "1 day",
+                places: places.map(p => ({
+                name: p.name,
+                bestTime: p.bestTime,
+                tips: p.tips?.slice(0, 1)
+                }))
+            };
 
-            const location = session.lastPlaceKey || "Legazpi";
+            let refinedText = null;
+
+            if (/tourist|visit|travel|plan/.test(message)) {
+                refinedText = await aiRefineItinerary(itineraryData);
+            }
 
             return res.json({
                 reply:
-                `Here’s a ${timeOfDay || "1-day"} itinerary in ${location}:\n\n` +
+                refinedText ||
+                `Here’s a simple itinerary:\n\n` +
                 places.map(p => `• ${p.name} (${p.bestTime})`).join("\n")
             });
-        }
+            }
+
 
         /* ---------------- NEARBY ---------------- */
 
