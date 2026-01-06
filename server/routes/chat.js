@@ -1,6 +1,7 @@
 import express from 'express';
 import Place from '../models/Place.js';
 import Route from '../models/Route.js';
+import { aiNormalize } from '../utils/aiNormalize.js';
 
 const sessions = {};
 const router = express.Router();
@@ -111,6 +112,17 @@ router.post('/', async (req, res) => {
         let resolvedPlaces = extractPlaces(message);
         let destination = null;
         let from = null;
+
+        if(!resolvedPlaces){
+            const ai = await aiNormalize(message);
+            if(ai?.cleanedText) {
+                message = ai?.cleanedText
+                intent = detectIntent(message);
+                resolvedPlaces = extractPlaces(message);
+            };
+        }
+
+        
 
          if (session.pendingRoute.to || session.pendingRoute.from) {
          intent = "route";
