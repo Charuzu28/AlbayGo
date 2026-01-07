@@ -30,7 +30,8 @@ function detectIntent(message){
     if (/hotel|stay|lodge|motel/.test(text)) return "stay";
     if (/tourist|spot|landmark|attraction|mayon/.test(text)) return "tourist";
     if (/near|around|nearby/.test(text)) return "nearby";
-    if (/what should i do|itinerary|plan/.test(text)) return "itinerary";
+    if (/itinerary|plan|schedule/.test(text)) return "itinerary";
+    if (/day 2|second day|another day|add a day/.test(text)) return "extend-itinerary";
     if (/recommend|suggest|best/.test(text)) return "recommend";
     if (/why|explain/.test(text)) return "why";
     if (/jeep|tricycle|van|bus/.test(text)) return "transport";
@@ -149,37 +150,83 @@ router.post('/', async (req, res) => {
 
         /* ---------------- ITINERARY ---------------- */
 
-        if (intent === "itinerary") {
-            session.lastIntent = "itinerary";
-
-            const places = await Place.find({ intent: "tourist" }).limit(5);
-
+        if (intent === "itinerary" && !session.itinerary) {
+            const places = await Place.find({ intent: "tourist" }).limit(6);
+            
+            
             if (!places.length) {
                 return res.json({ reply: "I don’t have itinerary data yet." });
             }
-
-            const itineraryData = {
+            
+            const day1 = {
+                day: 1,
+                places: places.slice(0,3)
+            }
+            session.itinerary = {
                 location: session.lastPlaceKey || "Legazpi",
-                duration: "1 day",
-                places: places.map(p => ({
-                name: p.name,
-                bestTime: p.bestTime,
-                tips: p.tips?.slice(0, 1)
-                }))
+                days: [day1]
             };
 
-            let refinedText = null;
-
-            if (/tourist|visit|travel|plan/.test(message)) {
-                refinedText = await aiRefineItinerary(itineraryData);
-            }
+            session.lastIntent = "itinerary";
 
             return res.json({
                 reply:
-                refinedText ||
-                `Here’s a simple itinerary:\n\n` +
-                places.map(p => `• ${p.name} (${p.bestTime})`).join("\n")
+                `Day 1 itinerary:\n\n` +
+                day1.places.map(p => `• ${p.name}`).join("\n")
             });
+            }
+
+            if (intent === "itinerary" && session.itinerary) {
+            return res.json({
+                reply: session.itinerary.days
+                .map(d => `Day ${d.day}:\n` + d.places.map(p => `• ${p.name}`).join("\n"))
+                .join("\n\n")
+            });
+            }
+
+
+            if(intent === 'extend-itinerary'){
+                if(!session.itinerary){
+                    return res.json({reply: "You don’t have an itinerary yet. Say ‘create itinerary’ first."});
+                };
+
+                const usedPlaces = session.itinerary.days.flatMap(d => d.places.map(p => p._id.toString()));
+
+                const newPlaces = await Place.find({
+                    intent: "tourist",
+                    _id: {$nin: usedPlaces}
+                }).limit(3);
+
+                if(!newPlaces.length){
+                    return res.json({reply: "I don’t have more places to add."})
+                }
+
+                const nextDayNumber = session.itinerary.days.length + 1;
+
+                const newDay = {
+                    day: nextDayNumber,
+                    places: newPlaces
+                }
+
+                session.itinerary.days.push(newDay);
+                session.lastIntent = "itinerary";
+
+                const refined = await aiRefineItinerary({
+                        day: newDay.day,
+                        location: session.itinerary.location,
+                        places: newDay.places.map(p => ({
+                            name: p.name,
+                            bestTime: p.bestTime,
+                            tips: p.tips?.[0]
+                        }))
+                        });
+
+                return res.json({
+                        reply: refined || 
+                            `Day ${nextDayNumber} itinerary:\n\n` +
+                            newDay.places.map(p => `• ${p.name}`).join("\n")
+                        });
+
             }
 
 
