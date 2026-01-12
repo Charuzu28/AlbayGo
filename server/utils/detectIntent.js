@@ -1,7 +1,17 @@
 export function detectIntent(message){
     const text = message.toLowerCase();
 
-    if (/how do i get|how to go|from .* to /.test(text)) return "route";
+    
+    if (
+        text.includes("how do i get") ||
+        text.includes("how to get") ||
+        text.includes("route") ||
+        text.includes("directions") ||
+        text.includes("from") ||
+        text.includes("to")
+    ) {
+        return "route";
+    }
     if (/food|eat|delicacy|restaurant/.test(text)) return "food";
     if (/hotel|stay|lodge|motel/.test(text)) return "stay";
     if (/tourist|spot|landmark|attraction|mayon/.test(text)) return "tourist";
