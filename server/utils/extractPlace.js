@@ -1,15 +1,16 @@
 const KNOWN_PLACES = [
     "airport",
+    "sm legazpi",
     "legazpi",
     "daraga",
     "terminal",
     "legazpi port",
-    "sm legazpi"
+    
 ];
 
-export function extractPlaces(message){
+export function extractPlaces(message) {
     const text = message.toLowerCase();
-    return KNOWN_PLACES.find(p => text.includes(p)) || null;
+    return KNOWN_PLACES.filter(p => text.includes(p));
 }
 
 export function extractPlaceFromItinerary(itinerary, message){

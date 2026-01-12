@@ -11,21 +11,25 @@ export async function aiNormalize(message) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192",
+          model: "llama-3.1-8b-instant",
           messages: [
             {
               role: "system",
               content: `
-You are a tourism assistant.
-Fix typos and normalize place names.
-Return JSON ONLY in this format:
+You are a text normalizer.
+
+Rules:
+- ONLY fix spelling and casing.
+- DO NOT add, infer, or replace place names.
+- DO NOT introduce new locations.
+- DO NOT add geography or context.
+- DO NOT guess.
+
+Return JSON ONLY:
 
 {
-  "cleanedText": "",
-  "places": []
+  "cleanedText": ""
 }
-
-Do NOT add explanations.
               `
             },
             { role: "user", content: message }
