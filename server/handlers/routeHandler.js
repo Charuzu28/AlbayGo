@@ -1,10 +1,11 @@
 import Route from "../models/Route.js";
+import { normalizePlace } from "../utils/normalizePlace.js";
 
 export default async function handleRoute({ session, message, resolvedPlace, res }) {
     session.pendingRoute ||= {};
     session.lastIntent = "route";
 
-    function normalizePlace(place) {
+    function pickMostSpecificPlace(place) {
         if (!place) return null;
 
         // If array, pick the most specific (longest)
@@ -15,7 +16,7 @@ export default async function handleRoute({ session, message, resolvedPlace, res
     return place;
     }
 
-    const place = normalizePlace(resolvedPlace);
+    const place = pickMostSpecificPlace(resolvedPlace);
 
     function isMoreSpecific(newPlace, oldPlace) {
         if (!oldPlace) return true;
@@ -53,8 +54,8 @@ export default async function handleRoute({ session, message, resolvedPlace, res
         return res.json({ reply: "Where are you coming from?" });
     }
 
-    const fromKey = session.pendingRoute.from.trim().toLowerCase();
-    const toKey = session.pendingRoute.to.trim().toLowerCase();
+    const fromKey = normalizePlace(session.pendingRoute.from)
+    const toKey = normalizePlace(session.pendingRoute.to)
     
     if (fromKey === toKey) {
         session.pendingRoute = {};
@@ -91,7 +92,9 @@ export default async function handleRoute({ session, message, resolvedPlace, res
         notes: r.notes
     };
 
-    session.pendingRoute ||= {};
+    session.pendingRoute = {};
+    session.lastIntent = null;
+
     console.log("FROM:", fromKey);
     console.log("TO:", toKey);
     console.log("ROUTES FOUND:", routes.length);
@@ -106,3 +109,4 @@ export default async function handleRoute({ session, message, resolvedPlace, res
     });
 }
 
+  
