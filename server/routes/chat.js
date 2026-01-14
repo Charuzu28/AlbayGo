@@ -43,6 +43,8 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ reply: "No message received." });
     }
 
+   
+
     sessions[sessionId] ||= {
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -51,6 +53,12 @@ router.post("/", async (req, res) => {
 
     const session = sessions[sessionId];
     session.updatedAt = Date.now();
+
+     if(message.toLowerCase() === 'why' && session.lastRoute){
+        return res.json({
+            reply: session.lastRoute.notes || "That’s the most common route locals take."
+        })
+    }
 
     const intent = detectIntent(message);
     const resolvedPlace = extractPlaces(message);

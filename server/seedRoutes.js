@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import Route from "./models/Route.js";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -10,34 +10,23 @@ await Route.deleteMany();
 
 await Route.insertMany([
   {
-    from: "Daraga Airport",
     fromKey: "airport",
-    to: "SM Legazpi",
     toKey: "sm legazpi",
+    from: "Daraga Airport",
+    to: "SM Legazpi",
     vehicle: "Taxi",
     via: ["Daraga"],
     fare: "₱15–₱20",
-    notes: "Ask the driver going to SM or Terminal"
+    notes: "Fastest option"
   },
   {
-    from: "SM Legazpi",
-    fromKey: "sm legazpi",
-    to: "Daraga",
-    toKey: "daraga",
+    fromKey: "daraga",
+    toKey: "legazpi boulevard",
+    from: "Daraga",
+    to: "Legazpi Boulevard",
     vehicle: "Jeepney",
-    via: ["Terminal"],
-    fare: "₱15",
-    notes: "Common public route"
-  },
-  {
-    from: "Legazpi Port",
-    fromKey: "legazpi port",
-    to: "SM Legazpi",
-    toKey: "sm legazpi",
-    vehicle: "Tricycle",
-    via: [],
-    fare: "₱30–₱50",
-    notes: "Fare depends on distance"
+    via: ["Mercury Drug Daraga"],
+    fare: "₱15"
   }
 ]);
 
