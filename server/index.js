@@ -15,11 +15,11 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors({
   origin: [
-    "http://localhost:5173",
-    "https://your-vercel-app.vercel.app"
+    "https://albaygo.onrender.com/"
   ],
   credentials: true
 }));
+
 app.use(helmet());
 app.use(morgan('dev'));
 
