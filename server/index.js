@@ -10,37 +10,47 @@ import Route from './models/Route.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+const allowedOrigins = [
+  "https://albay-go.vercel.app",
+  "http://localhost:5173"
+];
 
 app.use(express.json());
 app.use(cors({
-  origin: [
-    "https://albaygo.onrender.com/"
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow server-to-server
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST"],
   credentials: true
 }));
 
 app.use(helmet());
 app.use(morgan('dev'));
 
-mongoose.connect(process.env.MONGO_URI).then( async () => {
-    console.log("MONGODB CONNECTED!");
-    const count = await Route.countDocuments();
-    console.log(`Route Loaded: `, count);
-    app.listen(PORT, () => {
-        console.log(`Server running at http://localhost:${PORT}`);
-    })
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+  console.log("MONGODB CONNECTED!");
+  const count = await Route.countDocuments();
+  console.log(`Route Loaded: `, count);
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  })
 }).catch((err) => console.log("Error connecting to MongoDB: ", err));
 
-app.get('/health', (req,res) => {
-    res.status(200).json({status: 'OK'});
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
 })
 
 app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
-    res.send("Backend running!");
+  res.send("Backend running!");
 })
+
+app.options("*", cors());
 
 // Error Protection
 app.use((err, req, res, next) => {
