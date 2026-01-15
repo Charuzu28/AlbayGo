@@ -23,10 +23,11 @@ export default async function handleRoute({ session, message, resolvedPlace, res
         return newPlace.length > oldPlace.length;
         }
 
-        console.log("---- ROUTE HANDLER ----");
-        console.log("MESSAGE:", message);
-        console.log("RESOLVED PLACE:", resolvedPlace);
-        console.log("PENDING BEFORE:", session.pendingRoute);
+        // Comment out if not debugging
+        // console.log("---- ROUTE HANDLER ----");
+        // console.log("MESSAGE:", message);
+        // console.log("RESOLVED PLACE:", resolvedPlace);
+        // console.log("PENDING BEFORE:", session.pendingRoute);
 
     // Try to fill route slots
     if (place) {
@@ -62,7 +63,7 @@ export default async function handleRoute({ session, message, resolvedPlace, res
         return res.json({ reply: "You’re already there." });
     }
 
-    const routes = await Route.find({ fromKey, toKey });
+    const routes = await Route.find({ fromKey, toKey }).limit(3);
 
     // Fallback route
     if (!routes.length) {
@@ -82,7 +83,7 @@ export default async function handleRoute({ session, message, resolvedPlace, res
     }
 
     const r = routes[0];
-
+    let reply = "Here are your options:\n\n"
     session.lastRoute = {
         from: r.from,
         to: r.to,
@@ -99,14 +100,18 @@ export default async function handleRoute({ session, message, resolvedPlace, res
     console.log("TO:", toKey);
     console.log("ROUTES FOUND:", routes.length);
 
-    return res.json({
-        reply:
-            `🚍 Ride a ${r.vehicle}\n` +
+    routes.forEach((r,i) => {
+        reply +=
+            `🚍 Option ${i + 1}: ${r.vehicle}\n` +
             `• From: ${r.from}\n` +
             `• To: ${r.to}\n` +
             `• Via: ${r.via?.join(", ") || "Direct"}\n` +
-            `• Fare: ${r.fare}`
+            `• Fare: ${r.fare}\n\n`;
     });
+
+    session.lastRoute = routes;
+
+    return res.json({ reply })
 }
 
   

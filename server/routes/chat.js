@@ -32,18 +32,14 @@ const limiter = rateLimit({
 router.use(limiter);
 
 router.post("/", async (req, res) => {
-    const sessionId = req.ip;
+    const sessionId =
+  req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
     let { message } = req.body;
-    const normalized = await aiNormalize(message);
-
-    if(normalized?.cleanedText){
-        message = normalized.cleanedText;
-    }
+    
     if (!message || typeof message !== "string") {
         return res.status(400).json({ reply: "No message received." });
     }
-
-   
+    
 
     sessions[sessionId] ||= {
         createdAt: Date.now(),
@@ -53,6 +49,27 @@ router.post("/", async (req, res) => {
 
     const session = sessions[sessionId];
     session.updatedAt = Date.now();
+
+    const normalized = await aiNormalize(message);
+
+    if(normalized?.cleanedText){
+        message = normalized.cleanedText;
+    }
+
+    if (
+        session.lastRoute &&
+        /best|which|recommend/i.test(message)
+    ) {
+        const best = session.lastRoute.find(r =>
+            r.vehicle.toLowerCase().includes("taxi")
+    ) || session.lastRoute[0];
+
+    return res.json({
+            reply:
+            `I recommend ${best.vehicle} if you're in a hurry.\n` +
+            `Jeepneys are cheaper but slower.`
+        });
+    }
 
      if(message.toLowerCase() === 'why' && session.lastRoute){
         return res.json({
