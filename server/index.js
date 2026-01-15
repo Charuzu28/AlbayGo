@@ -14,20 +14,22 @@ const allowedOrigins = [
   "https://albay-go.vercel.app",
   "http://localhost:5173"
 ];
-
-app.use(express.json());
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow server-to-server
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
   credentials: true
-}));
+};
 
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 
@@ -49,8 +51,6 @@ app.use('/api/chat', chatRoutes);
 app.get('/', (req, res) => {
   res.send("Backend running!");
 })
-
-app.options("*", cors());
 
 // Error Protection
 app.use((err, req, res, next) => {
