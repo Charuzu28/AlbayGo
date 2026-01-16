@@ -7,6 +7,8 @@ import TypingIndicator from '../components/TypingIndicator';
 const Home = () => {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
   // const typingTimeoutRef = useRef(null);
 
   // const handleSend = (text) => {
@@ -29,7 +31,6 @@ const Home = () => {
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
     
-    console.log(`${import.meta.env.VITE_API_URL}`)
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
         method: "POST",
@@ -38,6 +39,7 @@ const Home = () => {
         },
         body: JSON.stringify({message: text})
       });
+      clearTimeout(timeoutId);
 
       const data = await response.json();
        setTimeout(() => {
@@ -53,13 +55,18 @@ const Home = () => {
       }, 2000);
     } catch (error) {
       console.error('Error', error);
-      setIsTyping(false);
+
        setMessages((prev) => [...prev, {
           id: Date.now() + 1,
           role: 'assistant',
-          content:'Something went wrong.', 
+          content:
+            error.name === "AbortError"
+              ? "Request timed out. Please try again."
+              : "Something went wrong.", 
           createdAt: new Date(),
        }]);
+
+       setIsTyping(false);
     }
   };
 
@@ -78,7 +85,7 @@ const Home = () => {
         </div>
 
         <div className="w-full max-w-2xl items-center">
-          <SearchInput onSend={handleSend} />
+          <SearchInput onSend={handleSend} disabled={isTyping}/>
         </div>
     </main>
 
