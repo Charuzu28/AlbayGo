@@ -3,9 +3,6 @@ import Logo from '../components/Logo';
 import SearchInput from '../components/SearchInput';
 import ChatContainer from '../components/ChatContainer';
 import TypingIndicator from '../components/TypingIndicator';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const Home = () => {
   const [messages, setMessages] = useState([]);
@@ -32,6 +29,7 @@ const Home = () => {
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
     
+    console.log(`${import.meta.env.VITE_API_URL}`)
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
         method: "POST",
