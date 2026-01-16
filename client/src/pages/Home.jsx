@@ -9,6 +9,8 @@ const Home = () => {
   const [isTyping, setIsTyping] = useState(false);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const hasMessages = messages.length > 0;
+
   // const typingTimeoutRef = useRef(null);
 
   // const handleSend = (text) => {
@@ -71,23 +73,38 @@ const Home = () => {
   };
 
   return (
-      <main className="min-h-screen px-4 flex flex-col items-center justify-center">
-        <div className="max-w-2xl mx-auto text-center space-y-6 pt-24 mb-5">
-          <Logo />
-          <p className="text-gray-600 text-sm sm:text-lg font-poppins">
-            Your local guide for moving around Albay.
-          </p>
-        </div>
+      <main className="min-h-screen h-dvh flex flex-col bg-white">
 
-        <div className="w-full max-w-2xl text-left mb-5">
-          <ChatContainer messages={messages} />
-          {isTyping && <TypingIndicator />}
-        </div>
+  <header
+    className={`w-full max-w-2xl mx-auto px-4 transition-all duration-300
+      ${hasMessages ? "pt-4 pb-2 text-left" : "flex-1 flex flex-col items-center justify-center"}
+    `}
+  >
+    <Logo />
 
-        <div className="w-full max-w-2xl items-center">
-          <SearchInput onSend={handleSend} disabled={isTyping}/>
-        </div>
-    </main>
+    {!hasMessages && (
+      <p className="text-gray-600 text-sm sm:text-lg font-poppins mt-3 text-center">
+        Your local guide for moving around Albay.
+      </p>
+    )}
+  </header>
+  {hasMessages && (
+    <section className="w-full max-w-2xl mx-auto flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <ChatContainer messages={messages} />
+      {isTyping && <TypingIndicator />}
+    </section>
+  )}
+
+  <footer
+    className={`w-full max-w-2xl mx-auto px-4 pb-4 pt-2 bg-white
+      ${hasMessages ? "sticky bottom-0" : "mb-10"}
+    `}
+  >
+    <SearchInput onSend={handleSend} disabled={isTyping} />
+  </footer>
+
+</main>
+
 
   )
 }

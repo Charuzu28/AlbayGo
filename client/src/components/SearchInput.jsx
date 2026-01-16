@@ -26,16 +26,16 @@ export default function SearchInput({onSend, disabled}) {
         onChange={(e) => setQuery(e.target.value)}
         className="
           w-full
-          max-w-xs
-          sm:max-w-xl
-          md:max-w-2xl
-          lg:max-w-4xl
+          max-w-xl
+          sm:max-w-4xl
+          md:max-w-6xl
+          lg:max-w-5xl
           px-4 py-3
           border border-gray-300
-          rounded-xl
+          rounded-3xl
           text-base
           focus:outline-none
-          focus:ring-2 focus:ring-black
+          focus:ring-1 focus:ring-black
           font-poppins
         "
       />
