@@ -111,7 +111,7 @@ export default async function handleRoute({ session, message, resolvedPlace, res
 
     session.lastRoute = routes;
 
-    return res.json({ reply })
+    return res.status(200).json({ reply })
 }
 
   
