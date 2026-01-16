@@ -33,6 +33,6 @@ It answers natural-language questions like:
 
 ## ⚙️ Environment Variables
 
-### Frontend (`.env`)
-```env
-VITE_API_URL=https://albaygo.onrender.com
+### Deployed
+```
+https://albay-go.vercel.app
