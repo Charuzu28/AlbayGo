@@ -5,12 +5,28 @@ const KNOWN_PLACES = [
     "daraga",
     "terminal",
     "legazpi port",
+    "hoyop hoyopan cave",
+    "seventy-six farm",
+    "quitinday greenhills",
+    "solong ecopark",
+    "jovellar underground river",
+    "mayon skyline view deck",
+    "sumlang lake",
+    "lignon hill",
+    "daraga church",
+    "cagsawa ruins park",
     
 ];
 
 export function extractPlaces(message) {
     const text = message.toLowerCase();
-    return KNOWN_PLACES.filter(p => text.includes(p));
+    const matches = KNOWN_PLACES.filter(p => text.includes(p)).sort((a, b) => b.length - a.length);
+
+    // console.log("[extractPlaces]");
+    // console.log("TEXT:", text);
+    // console.log("MATCHES:", matches);
+
+    return matches;
 }
 
 export function extractPlaceFromItinerary(itinerary, message){

@@ -1,7 +1,8 @@
 export function detectIntent(message){
+    // console.log("[detectIntent] RAW MESSAGE:", message);
+
     const text = message.toLowerCase();
 
-    
     if (
         text.includes("how do i get") ||
         text.includes("how to get") ||
@@ -10,6 +11,7 @@ export function detectIntent(message){
         text.includes("from") ||
         text.includes("to")
     ) {
+        // console.log("[detectIntent] MATCHED: route");
         return "route";
     }
     if (/food|eat|delicacy|restaurant/.test(text)) return "food";
