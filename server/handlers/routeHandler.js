@@ -18,6 +18,8 @@ export default async function handleRoute({ session, message, resolvedPlace, res
 
     const place = pickMostSpecificPlace(resolvedPlace);
 
+    // console.log("PICKED PLACE:", place);
+
     function isMoreSpecific(newPlace, oldPlace) {
         if (!oldPlace) return true;
         return newPlace.length > oldPlace.length;
@@ -31,6 +33,7 @@ export default async function handleRoute({ session, message, resolvedPlace, res
 
     // Try to fill route slots
     if (place) {
+        console.log("SLOT FILLING MESSAGE:", message);
         if (/from/.test(message)) {
             if (isMoreSpecific(place, session.pendingRoute.from)) {
             session.pendingRoute.from = place;
@@ -44,7 +47,8 @@ export default async function handleRoute({ session, message, resolvedPlace, res
         } else if (!session.pendingRoute.from) {
             session.pendingRoute.from = place;
         }
-        console.log("PENDING ROUTE:", session.pendingRoute);
+        //For debugging
+        // console.log("PENDING ROUTE:", session.pendingRoute);
     }
     // Ask for missing info
     if (!session.pendingRoute.to) {
@@ -58,6 +62,10 @@ export default async function handleRoute({ session, message, resolvedPlace, res
     const fromKey = normalizePlace(session.pendingRoute.from)
     const toKey = normalizePlace(session.pendingRoute.to)
     
+    
+    console.log("NORMALIZED FROM:", fromKey);
+    console.log("NORMALIZED TO:", toKey);
+
     if (fromKey === toKey) {
         session.pendingRoute = {};
         return res.json({ reply: "You’re already there." });

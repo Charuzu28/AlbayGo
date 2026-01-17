@@ -33,7 +33,9 @@ router.use(limiter);
 
 router.post("/", async (req, res) => {
     const sessionId =
-  req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
+    req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
+    // const sessionId = req.ip;
+
     let { message } = req.body;
     
     if (!message || typeof message !== "string") {
@@ -79,6 +81,13 @@ router.post("/", async (req, res) => {
 
     const intent = detectIntent(message);
     const resolvedPlace = extractPlaces(message);
+
+    // console.log("---- CHAT ROUTER ----");
+    // console.log("INTENT:", intent);
+    // console.log("RESOLVED PLACE:", resolvedPlace);
+    // console.log("PENDING ROUTE:", session.pendingRoute);
+    // console.log("LAST INTENT:", session.lastIntent);
+
 
    if (intent === "route" || session.lastIntent === "route") {
         return handleRoute({ session, message, resolvedPlace, res });

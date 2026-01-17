@@ -4,6 +4,7 @@ const KNOWN_PLACES = [
   "airport",
   "daraga airport",
   "sm legazpi",
+  "legazpi",
   "legazpi terminal",
   "daraga",
   "legazpi boulevard"
