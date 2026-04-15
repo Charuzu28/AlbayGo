@@ -1,28 +1,25 @@
-import express from 'express';
+import express from "express";
 import rateLimit from "express-rate-limit";
 
 import { detectIntent } from "../utils/detectIntent.js";
-import { extractPlaces } from "../utils/extractPlace.js";
-
 import { handleEdit } from "../handlers/editHandler.js";
 import { handleItinerary } from "../handlers/itineraryHandler.js";
-import  handleRoute  from "../handlers/routeHandler.js";
-
-import { aiNormalize } from '../utils/aiNormalize.js';
+import handleRoute from "../handlers/routeHandler.js";
+import { aiNormalize } from "../utils/aiNormalize.js";
 
 const router = express.Router();
 const sessions = {};
-const SESSION_TTL = 30 * 60 * 1000; 
+const SESSION_TTL = 30 * 60 * 1000;
 
 setInterval(() => {
-    const now = Date.now();
+  const now = Date.now();
 
-    for(const id in sessions){
-        if(now - sessions[id].updatedAt > SESSION_TTL){
-            delete sessions[id];
-        }
+  for (const id in sessions) {
+    if (now - sessions[id].updatedAt > SESSION_TTL) {
+      delete sessions[id];
     }
-}, 10 * 60 * 1000)
+  }
+}, 10 * 60 * 1000);
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -32,85 +29,87 @@ const limiter = rateLimit({
 router.use(limiter);
 
 router.post("/", async (req, res) => {
-    const sessionId =
-    req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
-    // const sessionId = req.ip;
+  const sessionId =
+    req.headers["x-session-id"] ||
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.ip;
 
-    let { message } = req.body;
-    
-    if (!message || typeof message !== "string") {
-        return res.status(400).json({ reply: "No message received." });
-    }
-    
+  let { message } = req.body;
 
-    sessions[sessionId] ||= {
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        pendingRoute: {}
-    };
+  if (!message || typeof message !== "string") {
+    return res.status(400).json({ reply: "No message received." });
+  }
 
-    const session = sessions[sessionId];
-    session.updatedAt = Date.now();
+  sessions[sessionId] ||= {
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    pendingRoute: { from: null, to: null },
+    lastRouteOptions: [],
+    selectedRoute: null
+  };
 
-    const normalized = await aiNormalize(message);
+  const session = sessions[sessionId];
+  session.updatedAt = Date.now();
 
-    if(normalized?.cleanedText){
-        message = normalized.cleanedText;
-    }
+//   const normalized = await aiNormalize(message);
+//   if (normalized?.cleanedText) {
+//     message = normalized.cleanedText;
+//   }
 
-    if (
-        session.lastRoute &&
-        /best|which|recommend/i.test(message)
-    ) {
-        const best = session.lastRoute.find(r =>
-            r.vehicle.toLowerCase().includes("taxi")
-    ) || session.lastRoute[0];
+  if (session.lastRouteOptions?.length && /best|which|recommend/i.test(message)) {
+    const best =
+        session.lastRouteOptions.find((route) =>
+        route.vehicle.toLowerCase().includes("taxi")
+        ) || session.lastRouteOptions[0];
 
-    return res.json({
-            reply:
-            `I recommend ${best.vehicle} if you're in a hurry.\n` +
-            `Jeepneys are cheaper but slower.`
-        });
-    }
-
-     if(message.toLowerCase() === 'why' && session.lastRoute){
-        return res.json({
-            reply: session.lastRoute.notes || "That’s the most common route locals take."
-        })
-    }
-
-    const intent = detectIntent(message);
-    const resolvedPlace = extractPlaces(message);
-
-    // console.log("---- CHAT ROUTER ----");
-    // console.log("INTENT:", intent);
-    // console.log("RESOLVED PLACE:", resolvedPlace);
-    // console.log("PENDING ROUTE:", session.pendingRoute);
-    // console.log("LAST INTENT:", session.lastIntent);
-
-
-   if (intent === "route" || session.lastIntent === "route") {
-        return handleRoute({ session, message, resolvedPlace, res });
-    }
-    if (["itinerary", "extend-itinerary"].includes(intent)) {
-        return handleItinerary({ session, intent, message, res });
-    }
-
-    if (["remove-place", "replace-place", "move-place"].includes(intent)) {
-        return handleEdit({ session, intent, message, res });
-    }
-
-    if (intent === "unknown") {
-        return res.json({
-            reply: "I didn’t quite get that. Try asking about routes or itineraries."
-        });
-    }
+    session.selectedRoute = best;
 
     return res.json({
-        reply: "That feature isn’t available yet. Ask about routes or itineraries."
+        reply:
+        `I recommend ${best.vehicle} if you're in a hurry.\n` +
+        `Jeepneys are cheaper but slower.`,
+        intent: "route",
+        messageType: "route-followup",
+        routeOptions: session.lastRouteOptions,
+        selectedRoute: best
     });
+    }
+
+    if (/^why\??$/i.test(message) && session.selectedRoute) {
+    return res.json({
+        reply:
+        session.selectedRoute.notes ||
+        "That’s the most common route locals take.",
+        intent: "route",
+        messageType: "route-followup",
+        routeOptions: session.lastRouteOptions,
+        selectedRoute: session.selectedRoute
+    });
+    }
+
+  const intent = detectIntent(message);
+
+  if (intent === "route" || session.lastIntent === "route") {
+    return handleRoute({ session, message, res });
+  }
+
+  if (["itinerary", "extend-itinerary"].includes(intent)) {
+    return handleItinerary({ session, intent, res });
+  }
+
+  if (["remove-place", "replace-place", "move-place"].includes(intent)) {
+    return handleEdit({ session, intent, message, res });
+  }
+
+  if (intent === "unknown") {
+    return res.json({
+      reply: "I didn’t quite get that. Try asking about routes or itineraries."
+    });
+  }
+
+  return res.json({
+    reply: "That feature isn’t available yet. Ask about routes or itineraries."
+  });
 });
-
-
 
 export default router;

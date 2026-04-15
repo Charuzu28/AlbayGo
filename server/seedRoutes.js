@@ -11,22 +11,43 @@ await Route.deleteMany();
 await Route.insertMany([
   {
     fromKey: "airport",
-    toKey: "sm legazpi",
-    from: "Daraga Airport",
+    toKey: "sm-legazpi",
+    from: "Bicol International Airport",
     to: "SM Legazpi",
     vehicle: "Taxi",
     via: ["Daraga"],
-    fare: "₱15–₱20",
-    notes: "Fastest option"
+    fare: "Verify locally",
+    notes: "Fastest option. Fare should be verified with current local rates."
+  },
+  {
+    fromKey: "sm-legazpi",
+    toKey: "airport",
+    from: "SM Legazpi",
+    to: "Bicol International Airport",
+    vehicle: "Taxi",
+    via: ["Daraga"],
+    fare: "Verify locally",
+    notes: "Fastest reverse route. Fare should be verified with current local rates."
   },
   {
     fromKey: "daraga",
-    toKey: "legazpi boulevard",
+    toKey: "legazpi-boulevard",
     from: "Daraga",
     to: "Legazpi Boulevard",
     vehicle: "Jeepney",
     via: ["Mercury Drug Daraga"],
-    fare: "₱15"
+    fare: "₱15",
+    notes: "Budget-friendly route."
+  },
+  {
+    fromKey: "legazpi-boulevard",
+    toKey: "daraga",
+    from: "Legazpi Boulevard",
+    to: "Daraga",
+    vehicle: "Jeepney",
+    via: ["Mercury Drug Daraga"],
+    fare: "₱15",
+    notes: "Common return route."
   }
 ]);
 
