@@ -1,125 +1,124 @@
 import Route from "../models/Route.js";
-import { normalizePlace } from "../utils/normalizePlace.js";
+import { extractRouteSlots } from "../utils/extractRouteSlots.js";
+import { getPlaceByKey } from "../utils/placeDictionary.js";
 
-export default async function handleRoute({ session, message, resolvedPlace, res }) {
-    session.pendingRoute ||= {};
-    session.lastIntent = "route";
+function buildFallbackRoute(fromKey, toKey) {
+  const fromPlace = getPlaceByKey(fromKey);
+  const toPlace = getPlaceByKey(toKey);
 
-    function pickMostSpecificPlace(place) {
-        if (!place) return null;
-
-        // If array, pick the most specific (longest)
-        if (Array.isArray(place)) {
-            return place.sort((a, b) => b.length - a.length)[0];
-    }
-
-    return place;
-    }
-
-    const place = pickMostSpecificPlace(resolvedPlace);
-
-    // console.log("PICKED PLACE:", place);
-
-    function isMoreSpecific(newPlace, oldPlace) {
-        if (!oldPlace) return true;
-        return newPlace.length > oldPlace.length;
-        }
-
-        // Comment out if not debugging
-        // console.log("---- ROUTE HANDLER ----");
-        // console.log("MESSAGE:", message);
-        // console.log("RESOLVED PLACE:", resolvedPlace);
-        // console.log("PENDING BEFORE:", session.pendingRoute);
-
-    // Try to fill route slots
-    if (place) {
-        console.log("SLOT FILLING MESSAGE:", message);
-        if (/from/.test(message)) {
-            if (isMoreSpecific(place, session.pendingRoute.from)) {
-            session.pendingRoute.from = place;
-            }
-        } else if (/to/.test(message)) {
-            if (isMoreSpecific(place, session.pendingRoute.to)) {
-            session.pendingRoute.to = place;
-            }
-        } else if (!session.pendingRoute.to) {
-            session.pendingRoute.to = place;
-        } else if (!session.pendingRoute.from) {
-            session.pendingRoute.from = place;
-        }
-        //For debugging
-        // console.log("PENDING ROUTE:", session.pendingRoute);
-    }
-    // Ask for missing info
-    if (!session.pendingRoute.to) {
-        return res.json({ reply: "Where are you heading?" });
-    }
-
-    if (!session.pendingRoute.from) {
-        return res.json({ reply: "Where are you coming from?" });
-    }
-
-    const fromKey = normalizePlace(session.pendingRoute.from)
-    const toKey = normalizePlace(session.pendingRoute.to)
-    
-    
-    console.log("NORMALIZED FROM:", fromKey);
-    console.log("NORMALIZED TO:", toKey);
-
-    if (fromKey === toKey) {
-        session.pendingRoute = {};
-        return res.json({ reply: "You’re already there." });
-    }
-
-    const routes = await Route.find({ fromKey, toKey }).limit(3);
-
-    // Fallback route
-    if (!routes.length) {
-        session.lastRoute = {
-            from: fromKey,
-            to: toKey,
-            vehicle: "jeepney or tricycle",
-            notes: "Common local transport"
-        };
-
-        return res.json({
-            reply:
-                `There’s no fixed route data yet.\n` +
-                `Locals usually take a jeepney or tricycle.\n` +
-                `Just tell the driver you're going to ${toKey}.`
-        });
-    }
-
-    const r = routes[0];
-    let reply = "Here are your options:\n\n"
-    session.lastRoute = {
-        from: r.from,
-        to: r.to,
-        vehicle: r.vehicle,
-        via: r.via,
-        fare: r.fare,
-        notes: r.notes
-    };
-
-    session.pendingRoute = {};
-    session.lastIntent = null;
-
-    console.log("FROM:", fromKey);
-    console.log("TO:", toKey);
-    console.log("ROUTES FOUND:", routes.length);
-
-    routes.forEach((r,i) => {
-        reply +=
-            `🚍 Option ${i + 1}: ${r.vehicle}\n` +
-            `• From: ${r.from}\n` +
-            `• To: ${r.to}\n` +
-            `• Via: ${r.via?.join(", ") || "Direct"}\n` +
-            `• Fare: ${r.fare}\n\n`;
-    });
-
-    session.lastRoute = routes;
-
-    return res.status(200).json({ reply })
+  return {
+    fromKey,
+    toKey,
+    from: fromPlace?.name ?? fromKey,
+    to: toPlace?.name ?? toKey,
+    vehicle: "Jeepney or tricycle",
+    via: [],
+    fare: "Ask the driver",
+    notes: "No verified fixed route is stored yet. Ask the driver or locals for the latest route."
+  };
 }
 
-  
+function buildRouteReply(routeOptions) {
+  let reply = "Here are your options:\n\n";
+
+  routeOptions.forEach((route, index) => {
+    reply +=
+      `Option ${index + 1}: ${route.vehicle}\n` +
+      `• From: ${route.from}\n` +
+      `• To: ${route.to}\n` +
+      `• Via: ${route.via?.length ? route.via.join(", ") : "Direct"}\n` +
+      `• Fare: ${route.fare || "Not available"}\n\n`;
+  });
+
+  return reply.trim();
+}
+
+export default async function handleRoute({ session, message, res }) {
+  session.pendingRoute ||= { from: null, to: null };
+  session.lastIntent = "route";
+
+  const slots = extractRouteSlots(message);
+
+  console.log("ROUTE DEBUG:", {
+    message,
+    slots,
+    pendingBefore: session.pendingRoute
+  });
+
+  if (slots.from && slots.to) {
+    session.pendingRoute = {
+      from: slots.from,
+      to: slots.to
+    };
+  } else {
+    if (slots.to) {
+      session.pendingRoute.to = slots.to;
+    }
+
+    if (slots.from) {
+      session.pendingRoute.from = slots.from;
+    }
+
+    if (!slots.from && !slots.to && slots.mentionedPlaces.length === 1) {
+      const singlePlace = slots.mentionedPlaces[0];
+
+      if (!session.pendingRoute.to) {
+        session.pendingRoute.to = singlePlace;
+      } else if (!session.pendingRoute.from) {
+        session.pendingRoute.from = singlePlace;
+      }
+    }
+
+    if (
+      !slots.from &&
+      !slots.to &&
+      slots.mentionedPlaces.length >= 2 &&
+      !session.pendingRoute.from &&
+      !session.pendingRoute.to
+    ) {
+      session.pendingRoute.from = slots.mentionedPlaces[0];
+      session.pendingRoute.to = slots.mentionedPlaces[1];
+    }
+  }
+
+  console.log("PENDING AFTER FILL:", session.pendingRoute);
+
+  if (!session.pendingRoute.to) {
+    return res.json({ reply: "Where are you heading?" });
+  }
+
+  if (!session.pendingRoute.from) {
+    return res.json({ reply: "Where are you coming from?" });
+  }
+
+  const fromKey = session.pendingRoute.from;
+  const toKey = session.pendingRoute.to;
+
+  console.log("LOOKUP:", { fromKey, toKey });
+
+  if (fromKey === toKey) {
+    session.pendingRoute = { from: null, to: null };
+    return res.json({ reply: "You’re already there." });
+  }
+
+  const routeDocs = await Route.find({ fromKey, toKey }).limit(3).lean();
+
+  const routeOptions = routeDocs.length
+    ? routeDocs
+    : [buildFallbackRoute(fromKey, toKey)];
+
+  const selectedRoute = routeOptions[0];
+
+  session.lastRouteOptions = routeOptions;
+  session.selectedRoute = selectedRoute;
+  session.pendingRoute = { from: null, to: null };
+  session.lastIntent = null;
+
+    return res.status(200).json({
+    reply: buildRouteReply(routeOptions),
+    intent: "route",
+    messageType: "route-result",
+    routeOptions,
+    selectedRoute
+    });
+}
