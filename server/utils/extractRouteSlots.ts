@@ -1,23 +1,24 @@
+import type { RouteSlots } from "../types/chat.js";
 import {
   normalizeText,
   resolvePlaceSegment,
   findPlaceMentions
 } from "./placeDictionary.js";
 
-function cleanRouteSegment(segment = "") {
+function cleanRouteSegment(segment: string = ""): string {
   return normalizeText(segment)
     .replace(/\b(please|pls|po|thanks|thank you|via|using)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-export function extractRouteSlots(message = "") {
+export function extractRouteSlots(message: string = ""): RouteSlots {
   const text = normalizeText(message);
 
   const mentionedPlaces = findPlaceMentions(text).map((place) => place.key);
 
-  let from = null;
-  let to = null;
+  let from: string | null = null;
+  let to: string | null = null;
 
   const toFromMatch = text.match(/\bto\s+(.+?)\s+from\s+(.+)$/i);
   if (toFromMatch) {
