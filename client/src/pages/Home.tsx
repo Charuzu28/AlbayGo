@@ -1,29 +1,34 @@
-import { useState } from 'react';
-import Logo from '../components/Logo';
-import SearchInput from '../components/SearchInput';
-import ChatContainer from '../components/ChatContainer';
-import TypingIndicator from '../components/TypingIndicator';
+import { useState } from "react";
+import Logo from "../components/Logo";
+import SearchInput from "../components/SearchInput";
+import ChatContainer from "../components/ChatContainer";
+import TypingIndicator from "../components/TypingIndicator";
+import type { ChatApiResponse, ChatMessage } from "../types/chat";
 
 const Home = () => {
-  const [messages, setMessages] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const hasMessages = messages.length > 0;
 
-  const handleSend = async (text) => {
+  const handleSend = async (text: string): Promise<void> => {
     if (!text.trim() || isTyping) return;
 
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
       content: text,
-      createdAt: new Date().toISOString()
+      intent: null,
+      messageType: "text",
+      routeOptions: [],
+      selectedRoute: null,
+      createdAt: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
 
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/chat`;
@@ -31,50 +36,50 @@ const Home = () => {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ message: text }),
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: ChatApiResponse = await response.json();
 
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: 'assistant',
+      const assistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
         content: data.reply || "No reply received.",
         intent: data.intent || null,
         messageType: data.messageType || "text",
         routeOptions: data.routeOptions || [],
         selectedRoute: data.selectedRoute || null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Frontend request error:", error);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error && error.name === "AbortError"
+          ? "Request timed out. Please try again."
+          : "Something went wrong.";
 
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content:
-          error.name === "AbortError"
-            ? "Request timed out. Please try again."
-            : "Something went wrong.",
+      const assistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: errorMessage,
         intent: null,
         messageType: "text",
         routeOptions: [],
         selectedRoute: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } finally {
-      clearTimeout(timeoutId);
+      window.clearTimeout(timeoutId);
       setIsTyping(false);
     }
   };
@@ -83,13 +88,17 @@ const Home = () => {
     <main className="min-h-screen h-dvh flex flex-col bg-white">
       <header
         className={`w-full max-w-2xl mx-auto px-4 transition-all duration-300
-          ${hasMessages ? "pt-4 pb-2 text-left" : "flex-1 flex flex-col items-center justify-center"}
+          ${
+            hasMessages
+              ? "pt-4 pb-2 text-left"
+              : "flex-1 flex flex-col items-center justify-center"
+          }
         `}
       >
         <Logo />
 
         {!hasMessages && (
-          <p className="text-gray-600 text-sm sm:text-lg font-poppins mt-3 text-center">
+          <p className="mt-3 text-center text-sm text-gray-600 font-poppins sm:text-lg">
             Your local guide for moving around Albay.
           </p>
         )}

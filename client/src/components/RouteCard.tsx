@@ -1,6 +1,11 @@
-export default function RouteCard({ route, index }) {
-  if (!route) return null;
+import type { RouteOption } from "../types/chat";
 
+interface RouteCardProps {
+  route: RouteOption;
+  index: number;
+}
+
+export default function RouteCard({ route, index }: RouteCardProps) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
@@ -21,7 +26,7 @@ export default function RouteCard({ route, index }) {
         </p>
         <p>
           <span className="font-medium text-gray-900">Via:</span>{" "}
-          {route.via?.length ? route.via.join(", ") : "Direct"}
+          {route.via.length ? route.via.join(", ") : "Direct"}
         </p>
         <p>
           <span className="font-medium text-gray-900">Fare:</span>{" "}
@@ -29,7 +34,7 @@ export default function RouteCard({ route, index }) {
         </p>
 
         {route.notes && (
-          <p className="pt-2 text-xs leading-relaxed text-gray-500 border-t border-gray-100">
+          <p className="border-t border-gray-100 pt-2 text-xs leading-relaxed text-gray-500">
             {route.notes}
           </p>
         )}
