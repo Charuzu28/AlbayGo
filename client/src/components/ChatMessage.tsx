@@ -1,15 +1,23 @@
 import RouteCard from "./RouteCard";
+import type { ChatMessage as ChatMessageType } from "../types/chat";
 
-export default function ChatMessage({ message, previousMessage }) {
+interface ChatMessageProps {
+  message: ChatMessageType;
+  previousMessage?: ChatMessageType;
+}
+
+export default function ChatMessage({
+  message,
+  previousMessage,
+}: ChatMessageProps) {
   const isUser = message.role === "user";
-  const isSameRole =
-    previousMessage && previousMessage.role === message.role;
+  const isSameRole = previousMessage?.role === message.role;
 
   const shouldRenderRouteCards =
-  !isUser &&
-  message.messageType === "route-result" &&
-  Array.isArray(message.routeOptions) &&
-  message.routeOptions.length > 0;
+    !isUser &&
+    message.messageType === "route-result" &&
+    Array.isArray(message.routeOptions) &&
+    message.routeOptions.length > 0;
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -33,14 +41,15 @@ export default function ChatMessage({ message, previousMessage }) {
         ) : (
           <div
             className={`
-              px-4 py-2
+              rounded-2xl
+              px-4
+              py-2
               text-sm
               leading-relaxed
-              rounded-2xl
               ${
                 isUser
-                  ? "bg-black text-white rounded-br-md"
-                  : "bg-gray-100 text-gray-900 rounded-bl-md"
+                  ? "rounded-br-md bg-black text-white"
+                  : "rounded-bl-md bg-gray-100 text-gray-900"
               }
             `}
           >

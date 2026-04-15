@@ -1,6 +1,26 @@
 import levenshtein from "fast-levenshtein";
 
-export const PLACE_DICTIONARY = [
+interface PlaceEntry {
+  key: string;
+  name: string;
+  aliases: string[];
+}
+
+interface AliasEntry {
+  key: string;
+  name: string;
+  alias: string;
+}
+
+export interface PlaceMention {
+  key: string;
+  name: string;
+  alias: string;
+  start: number;
+  end: number;
+}
+
+export const PLACE_DICTIONARY: PlaceEntry[] = [
   {
     key: "airport",
     name: "Bicol International Airport",
@@ -88,7 +108,7 @@ export const PLACE_DICTIONARY = [
   }
 ];
 
-const ALIAS_INDEX = PLACE_DICTIONARY.flatMap((place) =>
+const ALIAS_INDEX: AliasEntry[] = PLACE_DICTIONARY.flatMap((place) =>
   place.aliases.map((alias) => ({
     key: place.key,
     name: place.name,
@@ -96,7 +116,7 @@ const ALIAS_INDEX = PLACE_DICTIONARY.flatMap((place) =>
   }))
 ).sort((a, b) => b.alias.length - a.alias.length);
 
-export function normalizeText(input = "") {
+export function normalizeText(input: string = ""): string {
   return input
     .toLowerCase()
     .replace(/[^\w\s-]/g, " ")
@@ -104,15 +124,15 @@ export function normalizeText(input = "") {
     .trim();
 }
 
-export function getPlaceByKey(key) {
+export function getPlaceByKey(key: string): PlaceEntry | null {
   return PLACE_DICTIONARY.find((place) => place.key === key) || null;
 }
 
-export function findPlaceMentions(input = "") {
+export function findPlaceMentions(input: string = ""): PlaceMention[] {
   const text = normalizeText(input);
   if (!text) return [];
 
-  const rawMatches = [];
+  const rawMatches: PlaceMention[] = [];
 
   for (const entry of ALIAS_INDEX) {
     let startIndex = 0;
@@ -133,8 +153,8 @@ export function findPlaceMentions(input = "") {
 
   rawMatches.sort((a, b) => a.start - b.start || b.alias.length - a.alias.length);
 
-  const accepted = [];
-  const seenKeys = new Set();
+  const accepted: PlaceMention[] = [];
+  const seenKeys = new Set<string>();
 
   for (const match of rawMatches) {
     if (seenKeys.has(match.key)) continue;
@@ -160,14 +180,14 @@ export function findPlaceMentions(input = "") {
     }));
 }
 
-function cleanPlaceSegment(segment = "") {
+function cleanPlaceSegment(segment: string = ""): string {
   return normalizeText(segment)
     .replace(/\b(please|pls|po|thanks|thank you|going|go|get|route|directions)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-export function resolvePlaceSegment(segment = "") {
+export function resolvePlaceSegment(segment: string = ""): string | null {
   const cleaned = cleanPlaceSegment(segment);
   if (!cleaned) return null;
 
@@ -176,7 +196,7 @@ export function resolvePlaceSegment(segment = "") {
     return exactMentions[0].key;
   }
 
-  let bestMatch = null;
+  let bestMatch: AliasEntry | null = null;
   let bestScore = Infinity;
 
   for (const entry of ALIAS_INDEX) {

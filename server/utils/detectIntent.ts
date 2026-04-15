@@ -1,6 +1,7 @@
 import { findPlaceMentions } from "./placeDictionary.js";
+import type { Intent } from "../types/chat.js";
 
-export function detectIntent(message = "") {
+export function detectIntent(message: string = ""): Intent {
   const text = message.toLowerCase().trim();
   const mentionedPlaces = findPlaceMentions(text);
 
@@ -15,15 +16,10 @@ export function detectIntent(message = "") {
   const hasTransportKeyword =
     /\b(jeep|jeepney|tricycle|taxi|van|bus)\b/i.test(text);
 
-  const hasLooseRoutePrompt =
-    hasRoutePhrase &&
-    (/\bto\s+\w+/i.test(text) || /\bfrom\s+\w+/i.test(text));
-
   if (
     hasFromToPattern ||
     hasTransportKeyword ||
-    (hasRoutePhrase && mentionedPlaces.length >= 1) ||
-    hasLooseRoutePrompt
+    (hasRoutePhrase && mentionedPlaces.length >= 1)
   ) {
     return "route";
   }

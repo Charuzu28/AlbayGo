@@ -1,8 +1,10 @@
+import type { Response } from "express";
 import Route from "../models/Route.js";
 import { extractRouteSlots } from "../utils/extractRouteSlots.js";
 import { getPlaceByKey } from "../utils/placeDictionary.js";
+import type { RouteOption, SessionState } from "../types/chat.js";
 
-function buildFallbackRoute(fromKey, toKey) {
+function buildFallbackRoute(fromKey: string, toKey: string): RouteOption {
   const fromPlace = getPlaceByKey(fromKey);
   const toPlace = getPlaceByKey(toKey);
 
@@ -18,7 +20,7 @@ function buildFallbackRoute(fromKey, toKey) {
   };
 }
 
-function buildRouteReply(routeOptions) {
+function buildRouteReply(routeOptions: RouteOption[]): string {
   let reply = "Here are your options:\n\n";
 
   routeOptions.forEach((route, index) => {
@@ -33,17 +35,21 @@ function buildRouteReply(routeOptions) {
   return reply.trim();
 }
 
-export default async function handleRoute({ session, message, res }) {
+interface HandleRouteArgs {
+  session: SessionState;
+  message: string;
+  res: Response;
+}
+
+export default async function handleRoute({
+  session,
+  message,
+  res
+}: HandleRouteArgs): Promise<Response> {
   session.pendingRoute ||= { from: null, to: null };
   session.lastIntent = "route";
 
   const slots = extractRouteSlots(message);
-
-  console.log("ROUTE DEBUG:", {
-    message,
-    slots,
-    pendingBefore: session.pendingRoute
-  });
 
   if (slots.from && slots.to) {
     session.pendingRoute = {
@@ -81,8 +87,6 @@ export default async function handleRoute({ session, message, res }) {
     }
   }
 
-  console.log("PENDING AFTER FILL:", session.pendingRoute);
-
   if (!session.pendingRoute.to) {
     return res.json({ reply: "Where are you heading?" });
   }
@@ -94,14 +98,12 @@ export default async function handleRoute({ session, message, res }) {
   const fromKey = session.pendingRoute.from;
   const toKey = session.pendingRoute.to;
 
-  console.log("LOOKUP:", { fromKey, toKey });
-
   if (fromKey === toKey) {
     session.pendingRoute = { from: null, to: null };
     return res.json({ reply: "You’re already there." });
   }
 
-  const routeDocs = await Route.find({ fromKey, toKey }).limit(3).lean();
+  const routeDocs = (await Route.find({ fromKey, toKey }).limit(3).lean()) as RouteOption[];
 
   const routeOptions = routeDocs.length
     ? routeDocs
@@ -114,11 +116,11 @@ export default async function handleRoute({ session, message, res }) {
   session.pendingRoute = { from: null, to: null };
   session.lastIntent = null;
 
-    return res.status(200).json({
+  return res.status(200).json({
     reply: buildRouteReply(routeOptions),
     intent: "route",
     messageType: "route-result",
     routeOptions,
     selectedRoute
-    });
+  });
 }

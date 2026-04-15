@@ -1,8 +1,15 @@
 import { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
+import type { ChatMessage as ChatMessageType } from "../types/chat";
 
-export default function ChatContainer({ messages = [] }) {
-  const bottomRef = useRef(null);
+interface ChatContainerProps {
+  messages?: ChatMessageType[];
+}
+
+export default function ChatContainer({
+  messages = [],
+}: ChatContainerProps) {
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
