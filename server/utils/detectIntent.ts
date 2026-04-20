@@ -5,6 +5,24 @@ export function detectIntent(message: string = ""): Intent {
   const text = message.toLowerCase().trim();
   const mentionedPlaces = findPlaceMentions(text);
 
+  if (/^(hi|hello|hey|good morning|good afternoon|good evening)\b/i.test(text)) {
+    return "greeting";
+  }
+
+  if (/^(thanks|thank you|salamat|ty)\b/i.test(text)) {
+    return "gratitude";
+  }
+
+  if (/^(bye|goodbye|see you|ingat)\b/i.test(text)) {
+    return "farewell";
+  }
+
+  if (
+    /\b(who are you|what can you do|help|what do you do|how can you help)\b/i.test(text)
+  ) {
+    return "capability";
+  }
+
   const hasRoutePhrase =
     /\b(how do i get|how to get|how can i get|directions|route|commute|get to|go to|travel to)\b/i.test(
       text
