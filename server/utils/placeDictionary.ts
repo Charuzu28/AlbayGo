@@ -1,4 +1,5 @@
 import levenshtein from "fast-levenshtein";
+import { PLACE_REGISTRY } from "../data/placeRegistery.js";
 
 interface PlaceEntry {
   key: string;
@@ -20,93 +21,11 @@ export interface PlaceMention {
   end: number;
 }
 
-export const PLACE_DICTIONARY: PlaceEntry[] = [
-  {
-    key: "airport",
-    name: "Bicol International Airport",
-    aliases: ["airport", "daraga airport", "bicol airport", "bicol international airport"]
-  },
-  {
-    key: "sm-legazpi",
-    name: "SM Legazpi",
-    aliases: ["sm legazpi", "sm city legazpi"]
-  },
-  {
-    key: "legazpi",
-    name: "Legazpi",
-    aliases: ["legazpi", "legazpi city"]
-  },
-  {
-    key: "daraga",
-    name: "Daraga",
-    aliases: ["daraga"]
-  },
-  {
-    key: "terminal",
-    name: "Legazpi Terminal",
-    aliases: ["terminal", "legazpi terminal"]
-  },
-  {
-    key: "legazpi-port",
-    name: "Legazpi Port",
-    aliases: ["legazpi port", "port"]
-  },
-  {
-    key: "legazpi-boulevard",
-    name: "Legazpi Boulevard",
-    aliases: ["legazpi boulevard", "boulevard"]
-  },
-  {
-    key: "hoyop-hoyopan-cave",
-    name: "Hoyop Hoyopan Cave",
-    aliases: ["hoyop hoyopan cave"]
-  },
-  {
-    key: "seventy-six-farm",
-    name: "Seventy-Six Farm",
-    aliases: ["seventy-six farm", "76 farm"]
-  },
-  {
-    key: "quitinday-greenhills",
-    name: "Quitinday Green Hills",
-    aliases: ["quitinday greenhills", "quitinday green hills"]
-  },
-  {
-    key: "solong-ecopark",
-    name: "Solong EcoPark",
-    aliases: ["solong ecopark", "solong eco park"]
-  },
-  {
-    key: "jovellar-underground-river",
-    name: "Jovellar Underground River",
-    aliases: ["jovellar underground river"]
-  },
-  {
-    key: "mayon-skyline-view-deck",
-    name: "Mayon Skyline View Deck",
-    aliases: ["mayon skyline view deck", "mayon skyline"]
-  },
-  {
-    key: "sumlang-lake",
-    name: "Sumlang Lake",
-    aliases: ["sumlang lake"]
-  },
-  {
-    key: "lignon-hill",
-    name: "Ligñon Hill",
-    aliases: ["lignon hill", "ligñon hill", "lignon"]
-  },
-  {
-    key: "daraga-church",
-    name: "Daraga Church",
-    aliases: ["daraga church", "our lady of the gate parish"]
-  },
-  {
-    key: "cagsawa-ruins-park",
-    name: "Cagsawa Ruins Park",
-    aliases: ["cagsawa ruins park", "cagsawa ruins"]
-  }
-];
+export const PLACE_DICTIONARY: PlaceEntry[] = PLACE_REGISTRY.map((place) => ({
+  key: place.key,
+  name: place.name,
+  aliases: place.aliases,
+}));
 
 const ALIAS_INDEX: AliasEntry[] = PLACE_DICTIONARY.flatMap((place) =>
   place.aliases.map((alias) => ({

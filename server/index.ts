@@ -11,6 +11,8 @@ import mongoose from "mongoose";
 
 import chatRoutes from "./routes/chat.js";
 import Route from "./models/Route.js";
+import placesRoutes from "./routes/place.js";
+import nearbyRoutes from "./routes/nearby.js";
 
 dotenv.config();
 
@@ -52,6 +54,8 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/chat", chatRoutes);
+app.use("/api/places", placesRoutes);
+app.use("/api/nearby", nearbyRoutes);
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("Backend running!");

@@ -1,6 +1,11 @@
 export type Role = "user" | "assistant";
 
-export type MessageType = "text" | "route-result" | "route-followup";
+export type MessageType =
+  | "text"
+  | "route-result"
+  | "route-followup"
+  | "missing-route-origin"
+  | "missing-route-destination";
 
 export interface RouteOption {
   fromKey?: string;

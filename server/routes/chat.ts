@@ -5,6 +5,7 @@ import { detectIntent } from "../utils/detectIntent.js";
 import { handleEdit } from "../handlers/editHandler.js";
 import { handleItinerary } from "../handlers/itineraryHandler.js";
 import handleRoute from "../handlers/routeHandler.js";
+import { getSmallTalkReply } from "../utils/smallTalk.js";
 // import { aiNormalize } from "../utils/aiNormalize.js";
 
 import type { SessionState, RouteOption } from "../types/chat.js";
@@ -91,6 +92,16 @@ router.post("/", async (req: Request, res: Response) => {
   }
 
   const intent = detectIntent(message);
+
+  const smallTalkReply = getSmallTalkReply(intent);
+
+  if (smallTalkReply) {
+    return res.json({
+      reply: smallTalkReply,
+      intent,
+      messageType: "text"
+    });
+  }
 
   if (intent === "route" || session.lastIntent === "route") {
     return handleRoute({ session, message, res });

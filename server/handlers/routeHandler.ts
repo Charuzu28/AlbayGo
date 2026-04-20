@@ -88,12 +88,24 @@ export default async function handleRoute({
   }
 
   if (!session.pendingRoute.to) {
-    return res.json({ reply: "Where are you heading?" });
-  }
+  return res.json({
+    reply: "Where are you heading?",
+    intent: "route",
+    messageType: "missing-route-destination",
+    routeOptions: [],
+    selectedRoute: null,
+  });
+}
 
-  if (!session.pendingRoute.from) {
-    return res.json({ reply: "Where are you coming from?" });
-  }
+if (!session.pendingRoute.from) {
+  return res.json({
+    reply: "Where are you coming from?",
+    intent: "route",
+    messageType: "missing-route-origin",
+    routeOptions: [],
+    selectedRoute: null,
+  });
+}
 
   const fromKey = session.pendingRoute.from;
   const toKey = session.pendingRoute.to;

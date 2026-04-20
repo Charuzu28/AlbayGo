@@ -13,9 +13,18 @@ export type Intent =
   | "move-place"
   | "replace-place"
   | "context-followup"
+  | "greeting"
+  | "gratitude"
+  | "capability"
+  | "farewell"
   | "unknown";
 
-export type MessageType = "text" | "route-result" | "route-followup";
+export type MessageType =
+  | "text"
+  | "route-result"
+  | "route-followup"
+  | "missing-route-origin"
+  | "missing-route-destination";
 
 export interface RouteOption {
   fromKey?: string;
